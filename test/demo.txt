@@ -1,0 +1,3 @@
+Method	Mean	Min	Max	Std
+SPSO	0.047	0.02	0.08	0.031
+BBPSO	1.1E-06	3E-07	2E-06	8.5E-07
