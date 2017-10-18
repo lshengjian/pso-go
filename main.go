@@ -108,12 +108,12 @@ func main() {
 		for _,d :=range valueData	{
             r2.Results=append(r2.Results,d)
 		}
-		pre:=""
+		flag:=""
 		if c.Bool("speed"){
-			pre="Q"
+			flag="Q"
 		}
-		r1.SaveDataToFile("T-"+pre+c.String("output")+".txt")
-		r2.SaveDataToFile("V-"+pre+c.String("output")+".txt")
+		r1.SaveDataToFile("T-"+c.String("output")+flag+".txt")
+		r2.SaveDataToFile("V-"+c.String("output")+flag+".txt")
 		return nil
 	}
 	app.Run(os.Args)
