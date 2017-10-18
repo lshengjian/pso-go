@@ -14,7 +14,7 @@ type Bound struct {
 type Vector struct {
 	DataArray
 }
-type FitnessFunc func(v *Vector) (rt float64)
+
 
 // New creates an r x c sized matrix that is filled with the provided data.
 // The matrix data is represented as one long slice.

@@ -4,6 +4,7 @@ import (
 	. "github.com/lshengjian/pso-go/mathx"
 	
 )
+type FitnessFunc func(v *Vector) (rt float64)
 
 type Problem interface { //连续问题接口
 	GetName() string

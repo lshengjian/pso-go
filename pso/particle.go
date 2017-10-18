@@ -5,6 +5,7 @@ import (
 
 )
 const G_BAD_VALUE = 1e100
+
 type Data struct {
 	X     *Vector
 	Value float64
@@ -31,7 +32,7 @@ func (p *Particle) Check()  {
 	if p.Value < p.Best.Value {
 		p.Best.Value = p.Value
 		p.Best.X = p.X.Times(1)
-		p.Swarm.Check(p)
+		p.Swarm.Check(p.MakeBestData())
 	}
 	return
 }
@@ -48,10 +49,17 @@ func (p *Particle) SetX(px *Vector) {
 		p.X.Set(i, px.Get(i))
 	}
 }
+func (p *Particle) MakeBestData() Data{
+	return Data{p.Best.X.Times(1),p.Best.Value}
+}
 func (p *Particle) Move(g, G int) {
 	p.Swarm.Opt.Move(p, g, G)
 	p.Value = p.Swarm.Problem.GetFunValue(p.X)
-	p.Swarm.IncFEs()
+	p.Check()
+/*	if p.Swarm.IsQuick{
+		p.Swarm.DataChan<-p.MakeBestData()
+	}
+	p.Swarm.IncFEs()*/
 }
 /*
 func (p *Particle) GetOverFlag() bool {
@@ -61,7 +69,6 @@ func (p *Particle) Run(G int) {
 	go func() {
 		for g := 0; g < G ; g++ {
 			p.Move(g, G)
-			p.Check() 
 		}
 		p.Swarm.wg.Done()
 	}()

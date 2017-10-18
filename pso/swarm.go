@@ -19,7 +19,7 @@ type Swarm struct {
 	Opt        Strategy
 	sortIdxMap map[*Particle]int
 	mut        sync.RWMutex   //共享数据改变锁
-	DataChan  chan Data //新数据管道
+	//DataChan  chan Data //新数据管道
 	wg         sync.WaitGroup 
 	IsQuick bool
 
@@ -32,7 +32,7 @@ func NewSwarm(np int, opt Strategy, p Problem) (rt *Swarm) {
 	s.Opt = opt
 
 	s.Problem = p
-	s.DataChan = make(chan Data, np)
+//	s.DataChan = make(chan Data, np)
 	return &s
 }
 
@@ -40,10 +40,7 @@ func NewSwarm(np int, opt Strategy, p Problem) (rt *Swarm) {
 func (s *Swarm) IncFEs() {
 	atomic.AddUint32(&s.FEs, 1)
 }
-/*
-func (s *Swarm) Finished() {
-	s.wg.Done()
-}*/
+
 func (s *Swarm) GetBestX() *Vector {
 	if s.IsQuick {
 		s.mut.RLock()
@@ -51,23 +48,21 @@ func (s *Swarm) GetBestX() *Vector {
 	}
 	return s.Best.X.Times(1)
 }
-func (s *Swarm) Offset(x *Vector) *Vector {
+func (s *Swarm) OffsetOfBest(x *Vector) *Vector {
 	if s.IsQuick {
 		s.mut.RLock()
 	    defer s.mut.RUnlock()
 	}
 	return s.Best.X.Sub(x)
 }
-func (s *Swarm) Check(p *Particle) {
+func (s *Swarm) Check(d Data) {
 	if s.IsQuick {
-	s.mut.Lock()
-	defer s.mut.Unlock()
+	  s.mut.Lock()
+	  defer s.mut.Unlock()
 	}
-	if s.Best.Value > p.Best.Value {
-		s.Best.Value = p.Best.Value
-		s.Best.X = p.Best.X.Times(1)
-		//fmt.Println("Swarm Find Best:", p.Best.Value)
-
+	if s.Best.Value > d.Value {
+		s.Best.Value = d.Value
+		s.Best.X =d.X.Times(1)
 	}
 }
 func (s *Swarm) Init() {
@@ -101,24 +96,16 @@ func (s *Swarm) Init() {
 func (s *Swarm) Run( G int) {
 	s.Init()
 	if s.IsQuick {
-			for p, _ := range s.sortIdxMap {
-				s.wg.Add(1)
-				go p.Run(G)
-			}
-			s.wg.Wait()
+		for p, _ := range s.sortIdxMap {
+			s.wg.Add(1)
+			go p.Run(G)
+		}
+		s.wg.Wait()
 	}else{
-			for g := 0; g < G ; g++ {
-				for p, _ := range s.sortIdxMap {
-					p.Move(g,G)
-					p.Check()
-				}
+		for g := 0; g < G ; g++ {
+			for p, _ := range s.sortIdxMap {
+				p.Move(g,G)
 			}
-
+	    }
 	}
-
-	
-	//log.Println("Time (s):", sumTime/float64(trys))
-	//fmt.Println("FEs :", sumFEs/trys)
-	//log.Println("pass :", sumPass*100/trys, "%")
-
 }

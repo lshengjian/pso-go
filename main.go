@@ -27,13 +27,18 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.IntFlag{
 			Name:  "particles, p",
-			Value: 20,
-			Usage: "ant poplation.",
+			Value: 200,
+			Usage: "particle poplation.",
 		},
 		cli.IntFlag{
-			Name:  "maxIter, m",
+			Name:  "iterations, i",
 			Value: 200,
-			Usage: "try times.",
+			Usage: "iterations.",
+		},
+		cli.IntFlag{
+			Name:  "tries, t",
+			Value: 5,
+			Usage: "tries.",
 		},
 		cli.BoolFlag{
 			Name:  "speed, s",
@@ -41,7 +46,7 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:  "output ,o",
-			Value: "./mydata.txt",
+			Value: "p200",
 			Usage: "output file `filename`",
 		},
 	}
@@ -65,38 +70,50 @@ func main() {
 		}
 		
 		pops := c.Int("particles")
-		maxIter := c.Int("maxIter")
-		fmt.Println("maxIter:",maxIter,"particles",pops)
+		iterations := c.Int("iterations")
+		fmt.Println("iterations:",iterations,"particles",pops)
 		if c.Bool("speed") {
 			fmt.Println("CPU cores:",runtime.NumCPU())
 		}
 		
-		cnt:=5
+		cnt:=c.Int("tries")
 		rand.Seed(time.Now().UnixNano())
 		timers:=make([][]float64,len(ps))
-		data:=make([]*util.TestData,len(ps))
+		datas:=make([][]float64,len(ps))
+		timeData:=make([]*util.TestData,len(ps))
+		valueData:=make([]*util.TestData,len(ps))
 		for i,p:=range ps{
 			timers[i]=make([]float64,cnt)
-			
+			datas[i]=make([]float64,cnt)
 			for t := 0; t < cnt; t++ {
 				t1 := time.Now()
 				s := NewSwarm(pops,  &SPSO{}, p)
 				s.IsQuick=c.Bool("speed")
-				s.Run(maxIter)
+				s.Run(iterations)
 				
 				timers[i][t]=time.Since(t1).Seconds()
 				fmt.Println(t,"best:",s.Best.Value)
+				datas[i][t]=s.Best.Value
 				//fmt.Println(t,"cost time:",timers[i][t])
 			}
-			data[i]=&util.TestData{p.GetName(),"",timers[i]}
+			timeData[i]=&util.TestData{p.GetName(),"",timers[i]}
+			valueData[i]=&util.TestData{p.GetName(),"",datas[i]}
 		}
 		
-		r:=&util.ResultData{}
-		for _,d :=range data	{
-            r.Results=append(r.Results,d)
+		r1:=&util.ResultData{}
+		r2:=&util.ResultData{}
+		for _,d :=range timeData	{
+            r1.Results=append(r1.Results,d)
 		}
-		
-		r.SaveDataToFile(c.String("output"))
+		for _,d :=range valueData	{
+            r2.Results=append(r2.Results,d)
+		}
+		pre:=""
+		if c.Bool("speed"){
+			pre="Q"
+		}
+		r1.SaveDataToFile("T-"+pre+c.String("output")+".txt")
+		r2.SaveDataToFile("V-"+pre+c.String("output")+".txt")
 		return nil
 	}
 	app.Run(os.Args)
